@@ -3,6 +3,8 @@ from tkinter import ttk
 from tkcalendar import DateEntry
 import json
 import os
+from party import HotelBookingApp_party
+from json_access import check_room
 
 # 解像度をあげた
 import ctypes
@@ -47,7 +49,7 @@ class HotelBookingApp(tk.Frame):
         self.name_entry.place(x=380, y=155, height=40)  # yを135から155に変更
 
         # 宴会ボタン
-        self.party_button = tk.Button(self, text="宴会利用者はこちら", font=('', 12), relief=tk.RIDGE, width=20, bg="white", activebackground="floralwhite")
+        self.party_button = tk.Button(self, text="宴会利用者はこちら", font=('', 12), relief=tk.RIDGE, width=20, bg="white", activebackground="floralwhite",command=self.go_party)
         self.party_button.place(x=480, y=20, height=60)  
 
         # 接客マニュアルボタン
@@ -92,7 +94,7 @@ class HotelBookingApp(tk.Frame):
         self.checkout_entry.place(x=650, y=525, height=40)  # yを505から525に変更
 
         # 確認ボタン
-        self.confirm_button = tk.Button(self, text="確認", font=('', 12), relief=tk.RIDGE, width=20, bg="skyblue", activebackground="floralwhite")
+        self.confirm_button = tk.Button(self, text="確認", font=('', 12), relief=tk.RIDGE, width=20, bg="skyblue", activebackground="floralwhite",command=self.act_check)
         self.confirm_button.place(x=370, y=620, height=60)  # yを650から670に変更
 
     def show_manual(self):
@@ -109,7 +111,35 @@ class HotelBookingApp(tk.Frame):
 
         manual_label = tk.Label(manual_window, text=manual_text, font=("", 14), justify="left")
         manual_label.pack(padx=20, pady=20)
+    
+    def go_party(self):
+        self.destroy()
+        HotelBookingApp_party(self.master)
         
+    def act_check(self):
+        room_type = self.room_type_combobox.get()
+        checkin_date = self.checkin_entry.get_date()
+        checkout_date = self.checkout_entry.get_date()
+        result = check_room(room_type,checkin_date,checkout_date)
+        if result == "OK":
+            self.go_confirm
+        else:
+            self.go_room_list  
+               
+    def go_confirm(self):
+        name = self.name_entry.get()
+        email = self.email_entry.get()
+        people = self.people_entry.get()
+        room_type = self.room_type_combobox.get()
+        checkin_date = self.checkin_entry.get_date()
+        checkout_date = self.checkout_entry.get_date()
+        memo = self.text_widget.get("1.0", tk.END).strip()
+
+        # 確認画面に遷移
+        from main_confirm import Confirm
+        self.destroy()
+        Confirm(self.master, name, email, people, room_type, checkin_date, checkout_date, memo)
+                
 if __name__ == "__main__":
     root = tk.Tk()
     app = HotelBookingApp(root)
