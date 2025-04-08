@@ -72,6 +72,8 @@ class Confirm(tk.Frame):
         self.destroy()
         HotelBookingApp(self.master)
 
+
+
 if __name__ == '__main__':
     root = tk.Tk()
     app = Confirm(root, "田中 太郎", "tanaka@example.com", "3", "岩手山側 露天風呂付和室（本館）", "2025-04-10", "2025-04-12", "アレルギー: 甲殻類")

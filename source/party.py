@@ -4,6 +4,7 @@ from tkcalendar import DateEntry
 import json
 import os
 from json_access import check_party
+from datetime import timedelta 
 
 # 解像度をあげた
 import ctypes
@@ -98,9 +99,10 @@ class HotelBookingApp_party(tk.Frame):
         self.checkin_entry.place(x=380, y=565, height=40)  # yを495から565に変更
         self.checkin_label = tk.Label(self, text="～", font=("", 20))
         self.checkin_label.place(x=590, y=560)  # yを490から560に変更
-        self.checkout_entry = DateEntry(self, width=12, background='darkblue', foreground='white', borderwidth=2, font=("", 14), date_pattern='yyyy-mm-dd')
-        self.checkout_entry.place(x=650, y=565, height=40)  # yを495から565に変更
-       
+        self.checkout_label = tk.Label(self, text="未選択", font=("", 20))
+        self.checkout_label.place(x=650, y=565)
+        self.checkin_entry.bind("<<DateEntrySelected>>", self.update_checkout_date)
+        
         # 確認ボタン
         self.reserve_button = tk.Button(self, text="確認", font=('', 12), relief=tk.RIDGE, width=20, bg="skyblue", activebackground="floralwhite")
         self.reserve_button.place(x=370, y=650, height=60)  # yを650から670に変更
@@ -148,6 +150,12 @@ class HotelBookingApp_party(tk.Frame):
         self.destroy()
         Confirm(self.master, name, email, people, room_type, checkin_date, checkout_date, memo)
       
+    def update_checkout_date(self, event):
+        """チェックイン日を基にチェックアウト日を更新"""
+        checkin_date = self.checkin_entry.get_date()
+        checkout_date = checkin_date + timedelta(days=1)  # 翌日を計算
+        self.checkout_label.config(text=checkout_date.strftime('%Y-%m-%d'))
+
 
 if __name__ == "__main__":
     root = tk.Tk()
