@@ -6,6 +6,7 @@ import os
 from party import HotelBookingApp_party
 from json_access import check_room
 from datetime import timedelta 
+from tkinter import messagebox
 
 # 解像度をあげた
 import ctypes
@@ -127,7 +128,8 @@ class HotelBookingApp(tk.Frame):
         if result == "OK":
             self.go_confirm
         else:
-            self.go_room_list  
+            messagebox.showerror("戻れ", "部屋が空いていません。別の日程を選択してください。")
+            return
             
     def update_checkout_date(self, event):
         """チェックイン日を基にチェックアウト日を更新"""
