@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox  # メッセージボックスを使用するためにインポート
 import ctypes
+import json
+import os
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
@@ -8,11 +10,23 @@ except:
     pass
   
 class Confirm(tk.Frame):
-    def __init__(self, master, name, email, people, room_type, checkin_date, checkout_date, memo):
+    def __init__(self, master, name, email, people, room_type, checkin_date, checkout_date, memo, total_price):
         super().__init__(master, width=1500, height=750)
         self.pack()
         master.geometry('1500x750')  
         master.title('予約内容確認')
+
+        # 保存する予約情報
+        self.reservation_data = {
+            "代表者名": name,
+            "メールアドレス": email,
+            "人数": int(people),
+            "部屋の種類": room_type,
+            "チェックイン日": checkin_date,
+            "チェックアウト日": checkout_date,
+            "メモ": memo
+        }
+        self.total_price = total_price  # 合計料金
 
         # 情報を表示するウィジェットを作成
         self.create_widgets(name, email, people, room_type, checkin_date, checkout_date, memo)
@@ -22,13 +36,19 @@ class Confirm(tk.Frame):
         self.title_label.place(x=20, y=15)
         
         # 確定ボタン
-        self.confirm_button = tk.Button(self, text="予約確定", font=('', 12), relief=tk.RIDGE, width=20, bg="skyblue", activebackground="floralwhite")
+        self.confirm_button = tk.Button(
+            self, text="予約確定", font=('', 12), relief=tk.RIDGE, width=20, bg="skyblue",
+            activebackground="floralwhite", command=self.save_reservation
+        )
         self.confirm_button.place(x=1200, y=20, height=60)  
         
         # やり直しボタン
-        self.return_button = tk.Button(self, text="やり直す", font=('', 12), relief=tk.RIDGE, width=20, bg="white", activebackground="floralwhite", command=self.confirm_reset)
+        self.return_button = tk.Button(
+            self, text="やり直す", font=('', 12), relief=tk.RIDGE, width=20, bg="white",
+            activebackground="floralwhite", command=self.confirm_reset
+        )
         self.return_button.place(x=900, y=20, height=60)  
-        
+
         # 名前とメールアドレスフレーム
         name_email_frame = tk.Frame(self, relief="solid", bd=0.5)
         name_email_frame.place(x=120, y=120, width=620, height=200)
@@ -49,13 +69,35 @@ class Confirm(tk.Frame):
         price_frame = tk.Frame(self, relief="solid", bd=0.5)
         price_frame.place(x=750, y=120, width=620, height=200)
         tk.Label(price_frame, text="料金情報", font=("", 16)).pack(anchor="w", padx=10, pady=5)
-        # 料金情報はここに追加（例: 料金計算結果など）
+        tk.Label(price_frame, text=f"合計料金: ¥{self.total_price:,}", font=("", 14)).pack(anchor="w", padx=10, pady=5)
 
         # メモフレーム
         memo_frame = tk.Frame(self, relief="solid", bd=0.5)
         memo_frame.place(x=750, y=330, width=620, height=370)
         tk.Label(memo_frame, text="メモ", font=("", 16)).pack(anchor="w", padx=10, pady=5)
         tk.Label(memo_frame, text=memo, font=("", 14), wraplength=600, justify="left").pack(anchor="w", padx=10, pady=5)
+
+    def save_reservation(self):
+        """予約情報を保存"""
+        base_dir = os.path.dirname(__file__)
+        file_path = os.path.join(base_dir, "../json/reservations.json")
+
+        # 既存の予約情報を読み込む
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                reservations = json.load(file)
+        except FileNotFoundError:
+            reservations = []
+
+        # 新しい予約情報を追加
+        reservations.append(self.reservation_data)
+
+        # ファイルに書き込む
+        with open(file_path, "w", encoding="utf-8") as file:
+            json.dump(reservations, file, ensure_ascii=False, indent=4)
+
+        messagebox.showinfo("完了", "予約が確定しました！")
+        self.go_main()
 
     def confirm_reset(self):
         """やり直し確認メッセージを表示"""
@@ -73,8 +115,7 @@ class Confirm(tk.Frame):
         HotelBookingApp(self.master)
 
 
-
 if __name__ == '__main__':
     root = tk.Tk()
-    app = Confirm(root, "田中 太郎", "tanaka@example.com", "3", "岩手山側 露天風呂付和室（本館）", "2025-04-10", "2025-04-12", "アレルギー: 甲殻類")
+    app = Confirm(root, "田中 太郎", "tanaka@example.com", "3", "岩手山側 露天風呂付和室（本館）", "2025-04-10", "2025-04-12", "アレルギー: 甲殻類", 45000)
     app.mainloop()

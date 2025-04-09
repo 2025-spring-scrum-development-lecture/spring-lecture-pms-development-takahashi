@@ -4,7 +4,6 @@ from tkcalendar import DateEntry
 import json
 import os
 from party import HotelBookingApp_party
-from json_access import check_room
 from datetime import timedelta
 from tkinter import messagebox
 
@@ -88,6 +87,7 @@ class HotelBookingApp(tk.Frame):
         self.party_course_combobox['values'] = self.plan_names  # プラン名を設定
         self.party_course_combobox.place(x=380, y=340, height=40)
         self.party_course_combobox.bind("<<ComboboxSelected>>", self.update_room_types)  # プラン選択時に部屋を更新
+        self.party_course_combobox.bind("<<ComboboxSelected>>", self.update_total_price)  # プラン選択時に料金を更新
 
         # 部屋の種類
         self.room_type_label = tk.Label(self, text="部屋の種類", font=("", 20))
@@ -129,18 +129,25 @@ class HotelBookingApp(tk.Frame):
     def update_total_price(self, event=None):
         """人数とプランに基づいて見積金額を計算"""
         try:
+            # 人数を取得
             people = int(self.people_entry.get())
         except ValueError:
-            people = 0
+            people = 0  # 無効な値の場合は0に設定
 
+        # 選択されたプランを取得
         selected_plan = self.party_course_combobox.get()
         price_per_person = 0
+
+        # プランデータから料金を取得
         for plan in self.plan_data:
             if plan["プラン名"] == selected_plan:
                 price_per_person = plan["一人当たりの料金"]
                 break
 
+        # 合計料金を計算
         total_price = people * price_per_person
+
+        # 見積ラベルを更新
         self.nice_guy_sawafuji.config(text=f"見積　 ¥{total_price:,}")
 
     def show_manual(self):
@@ -161,34 +168,43 @@ class HotelBookingApp(tk.Frame):
         HotelBookingApp_party(self.master)
 
     def act_check(self):
+        """予約情報を確認し、重複がなければ確認画面に遷移"""
         room_type = self.room_type_combobox.get()
-        checkin_date = self.checkin_entry.get_date()
-        checkout_date = self.checkout_entry.get_date()
-        result = check_room(room_type, checkin_date, checkout_date)
-        if result == "OK":
-            self.go_confirm()
-        else:
-            messagebox.showerror("戻れ", "部屋が空いていません。別の日程を選択してください。")
+        checkin_date = self.checkin_entry.get_date().strftime('%Y-%m-%d')
+        checkout_date = self.checkout_label.cget("text")
+        name = self.name_entry.get()
+        email = self.email_entry.get()
+        people = self.people_entry.get()
+        memo = self.text_widget.get("1.0", tk.END).strip()
+
+        if not room_type or not checkin_date or not checkout_date or not name or not email or not people:
+            messagebox.showerror("エラー", "すべての項目を入力してください。")
             return
+
+        # 予約情報の重複チェック
+        base_dir = os.path.dirname(__file__)
+        file_path = os.path.join(base_dir, "../json/reservations.json")
+        with open(file_path, "r", encoding="utf-8") as file:
+            reservations = json.load(file)
+
+        for reservation in reservations:
+            if reservation["部屋の種類"] == room_type and (
+                (checkin_date >= reservation["チェックイン日"] and checkin_date < reservation["チェックアウト日"]) or
+                (checkout_date > reservation["チェックイン日"] and checkout_date <= reservation["チェックアウト日"])
+            ):
+                messagebox.showerror("エラー", "選択した部屋は指定された期間中にすでに予約されています。")
+                return
+
+        # 確認画面に遷移
+        from main_confirm import Confirm
+        self.destroy()
+        Confirm(self.master, name, email, people, room_type, checkin_date, checkout_date, memo)
 
     def update_checkout_date(self, event):
         """チェックイン日を基にチェックアウト日を更新"""
         checkin_date = self.checkin_entry.get_date()
         checkout_date = checkin_date + timedelta(days=1)
         self.checkout_label.config(text=checkout_date.strftime('%Y-%m-%d'))
-
-    def go_confirm(self):
-        name = self.name_entry.get()
-        email = self.email_entry.get()
-        people = self.people_entry.get()
-        room_type = self.room_type_combobox.get()
-        checkin_date = self.checkin_entry.get_date()
-        checkout_date = self.checkout_entry.get_date()
-        memo = self.text_widget.get("1.0", tk.END).strip()
-
-        from main_confirm import Confirm
-        self.destroy()
-        Confirm(self.master, name, email, people, room_type, checkin_date, checkout_date, memo)
 
 
 if __name__ == "__main__":
