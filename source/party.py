@@ -3,7 +3,8 @@ from tkinter import ttk
 from tkcalendar import DateEntry
 import json
 import os
-from datetime import timedelta 
+from datetime import timedelta
+import tkinter.messagebox as messagebox
 
 # 解像度をあげた
 import ctypes
@@ -17,145 +18,221 @@ class HotelBookingApp_party(tk.Frame):
         super().__init__(master, width=1500, height=750)
         self.pack()
         master.geometry('1500x750')
-        master.title('予約管理アプリ')
-        self.room_data = self.load_room_data()
-        self.create_widgets()  
-    
+        master.title('宴会予約管理アプリ')
+        self.party_data = self.load_party_data()  # 宴会データをロード
+        self.room_data = self.load_room_data()  # 部屋データをロード
+        self.create_widgets()
+
+    def load_party_data(self):
+        """JSONファイルから宴会コースデータを読み込む"""
+        base_dir = os.path.dirname(__file__)
+        file_path = os.path.join(base_dir, "../json/party.json")
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            messagebox.showerror("エラー", "party.json ファイルが見つかりません。")
+            return []
+
     def load_room_data(self):
         """JSONファイルから部屋データを読み込む"""
-        base_dir = os.path.dirname(__file__)  # 現在のスクリプトのディレクトリを取得
-        file_path = os.path.join(base_dir, "../json/room.json")  # room.json のパスを指定
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)    
+        base_dir = os.path.dirname(__file__)
+        file_path = os.path.join(base_dir, "../json/room.json")
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            messagebox.showerror("エラー", "room.json ファイルが見つかりません。")
+            return []
 
-    def create_widgets(self):   
-        pass
-        # frame1 = tk.Frame(self, relief="solid", bd=0.5)
-#         frame1.place(x=870, y=100, width=600, height=560)
-        
-#         self.title_label = tk.Label(self, text="お客様情報入力", font=("", 30))
-#         self.title_label.place(x=20, y=15)
-        
-#         # 宴会ボタン
-#         self.party_button = tk.Button(self, text="宴会不要者はこちら", font=('', 12), relief=tk.RIDGE, width=20, bg="white", activebackground="floralwhite",command=self.go_main)
-#         self.party_button.place(x=480, y=20, height=60)
-        
-#         # 接客マニュアルボタン
-#         self.manual_button = tk.Button(self, text="接客マニュアル", font=('', 12), relief=tk.RIDGE, width=20, bg="white", activebackground="floralwhite", command=self.show_manual)
-#         self.manual_button.place(x=780, y=20, height=60)
+    def create_widgets(self):
+        # メインフレーム
+        frame1 = tk.Frame(self, relief="solid", bd=0.5)
+        frame1.place(x=870, y=100, width=600, height=560)
 
+        self.title_label = tk.Label(self, text="お客様情報入力", font=("", 30))
+        self.title_label.place(x=20, y=15)
+
+        # メモ
+        self.memo_label = tk.Label(frame1, text="メモ", font=("", 20))
+        self.memo_label.place(x=10, y=15)
+        self.text_widget = tk.Text(frame1, height=24, width=58)
+        self.text_widget.place(x=3, y=70)
+
+        # 代表者名
+        self.name_label = tk.Label(self, text="代表者名", font=("", 20))
+        self.name_label.place(x=200, y=90)
+        self.name_entry = tk.Entry(self, width=30, relief="solid", font=("", 14))
+        self.name_entry.place(x=380, y=95, height=40)
+
+        # メールアドレス
+        self.email_label = tk.Label(self, text="メールアドレス", font=("", 20))
+        self.email_label.place(x=120, y=160)
+        self.email_entry = tk.Entry(self, width=30, relief="solid", font=("", 14))
+        self.email_entry.place(x=380, y=165, height=40)
+
+        # 人数
+        self.people_label = tk.Label(self, text="人数", font=("", 20))
+        self.people_label.place(x=275, y=235)
+        self.people_entry = tk.Entry(self, width=5, relief="solid", font=("", 14))
+        self.people_entry.place(x=380, y=240, height=40)
+        self.people_unit_label = tk.Label(self, text="名", font=("", 17))
+        self.people_unit_label.place(x=460, y=243)
+
+        # 部屋数
+        self.room_label = tk.Label(self, text="部屋数", font=("", 20))
+        self.room_label.place(x=230, y=305)
+        self.room_entry = tk.Entry(self, width=5, relief="solid", font=("", 14))
+        self.room_entry.place(x=380, y=310, height=40)
+        self.room_unit_label = tk.Label(self, text="部屋", font=("", 17))
+        self.room_unit_label.place(x=460, y=313)
+
+        # 宴会コース
+        self.party_course_label = tk.Label(self, text="宴会コース", font=("", 20))
+        self.party_course_label.place(x=163, y=375)
+        self.party_course_combobox = ttk.Combobox(self, width=30, font=("", 13), state="readonly")
+        self.party_course_combobox['values'] = [course["宴会名"] for course in self.party_data]
+        self.party_course_combobox.place(x=380, y=380, height=40)
+
+        # 宴会日
+        self.party_date_label = tk.Label(self, text="宴会日", font=("", 20))
+        self.party_date_label.place(x=237, y=445)
+        self.party_date_entry = DateEntry(self, width=12, background='darkblue', foreground='white', borderwidth=2, font=("", 14), date_pattern='yyyy-mm-dd')
+        self.party_date_entry.place(x=380, y=450, height=40)
+        self.party_date_entry.bind("<<DateEntrySelected>>", self.update_stay_period)
+
+        # 宿泊期間
+        self.stay_period_label = tk.Label(self, text="宿泊期間　未選択", font=("", 20))
+        self.stay_period_label.place(x=190, y=515)
+
+        # 見積
+        self.estimate_label = tk.Label(self, text="見積　 ¥0", font=("", 20))
+        self.estimate_label.place(x=260, y=590)
+
+        # 確認ボタン
+        self.confirm_button = tk.Button(self, text="確認", font=('', 12), relief=tk.RIDGE, width=20, bg="skyblue", activebackground="floralwhite", command=self.act_check)
+        self.confirm_button.place(x=370, y=660, height=60)
+
+        # 人数または宴会コース変更時に見積を更新
+        self.people_entry.bind("<KeyRelease>", self.update_total_price)
+        self.room_entry.bind("<KeyRelease>", self.update_total_price)
+        self.party_course_combobox.bind("<<ComboboxSelected>>", self.update_total_price)
         
-#         # メモ
-#         self.memo_label = tk.Label(frame1,text="メモ",font=("",20))
-#         self.memo_label.place(x=10,y=15)
-#         self.text_widget = tk.Text(frame1, height=24, width=58)
-#         self.text_widget.place(x=3, y=70)
-        
-#         # 代表者名
-#         self.name_label = tk.Label(self, text="代表者名", font=("", 20))
-#         self.name_label.place(x=200, y=120)  # yを150から120に変更
-#         self.name_entry = tk.Entry(self, width=30, relief="solid", font=("", 14))
-#         self.name_entry.place(x=380, y=125, height=40)  # yを155から125に変更
+        # 宴会ボタン
+        self.party_button = tk.Button(self, text="宴会不要者はこちら", font=('', 12), relief=tk.RIDGE, width=20, bg="white", activebackground="floralwhite", command=self.go_main)
+        self.party_button.place(x=480, y=20, height=60)
 
-#         # メールアドレス
-#         self.email_label = tk.Label(self, text="メールアドレス", font=("", 20))
-#         self.email_label.place(x=120, y=190)  # yを220から190に変更
-#         self.email_entry = tk.Entry(self, width=30, relief="solid", font=("", 14))
-#         self.email_entry.place(x=380, y=195, height=40)  # yを225から195に変更
+        # 接客マニュアルボタン
+        self.manual_button = tk.Button(self, text="接客マニュアル", font=('', 12), relief=tk.RIDGE, width=20, bg="white", activebackground="floralwhite", command=self.show_manual)
+        self.manual_button.place(x=780, y=20, height=60)
 
-#         # 人数
-#         self.people_label = tk.Label(self, text="人数", font=("", 20))
-#         self.people_label.place(x=275, y=265)  # yを295から265に変更
-#         self.people_entry = tk.Entry(self, width=5, relief="solid", font=("", 14))
-#         self.people_entry.place(x=380, y=270, height=40)  # yを300から270に変更
-#         self.people_label = tk.Label(self, text="名", font=("", 17))
-#         self.people_label.place(x=460, y=273)  # yを303から273に変更
+    def update_total_price(self, event=None):
+        """人数と宴会コースに基づいて見積金額を計算"""
+        try:
+            # 人数を取得
+            people = int(self.people_entry.get())
+        except ValueError:
+            people = 0  # 無効な値の場合は0に設定
 
-#         # 部屋数
-#         self.room_label = tk.Label(self, text="宿泊部屋数", font=("", 20))
-#         self.room_label.place(x=160, y=335)  # yを295から265に変更
-#         self.room_entry = tk.Entry(self, width=5, relief="solid", font=("", 14))
-#         self.room_entry.place(x=380, y=340, height=40)  # yを300から270に変更
-#         self.room_label = tk.Label(self, text="部屋", font=("", 17))
-#         self.room_label.place(x=460, y=343)  # yを303から273に変更
+        try:
+            # 部屋数を取得
+            rooms = int(self.room_entry.get())
+        except ValueError:
+            rooms = 0  # 無効な値の場合は0に設定
 
-#         # 宴会コース
-#         self.party_course_label = tk.Label(self, text="宴会コース", font=("", 20))
-#         self.party_course_label.place(x=163, y=405)  # yを335から405に変更
-#         self.party_course_combobox = ttk.Combobox(self, width=30, font=("", 13), state="readonly")
-#         self.party_course_combobox['values'] = ("行わない", "豪華コース", "雅コース", "錦コース", "椿コース")
-#         self.party_course_combobox.place(x=380, y=410, height=40)  # yを340から410に変更
+        # 選択された宴会コースを取得
+        selected_course = self.party_course_combobox.get()
+        price_per_person = 0
 
-#         # 宴会
-#         self.party_date_label = tk.Label(self, text="宴会日", font=("", 20))
-#         self.party_date_label.place(x=237, y=490)  # yを490から560に変更
-#         self.party_date_entry = DateEntry(self, width=12, background='darkblue', foreground='white', borderwidth=2, font=("", 14), date_pattern='yyyy-mm-dd')
-#         self.party_date_entry.place(x=380, y=495, height=40)  # yを495から565に変更
-        
-#         # 宿泊期間
-#         self.checkin_label = tk.Label(self, text="宿泊期間", font=("", 20))
-#         self.checkin_label.place(x=190, y=560)  # yを490から560に変更
-#         self.checkin_entry = DateEntry(self, width=12, background='darkblue', foreground='white', borderwidth=2, font=("", 14), date_pattern='yyyy-mm-dd')
-#         self.checkin_entry.place(x=380, y=565, height=40)  # yを495から565に変更
-#         self.checkin_label = tk.Label(self, text="～", font=("", 20))
-#         self.checkin_label.place(x=590, y=560)  # yを490から560に変更
-#         self.checkout_label = tk.Label(self, text="未選択", font=("", 20))
-#         self.checkout_label.place(x=650, y=565)
-#         self.checkin_entry.bind("<<DateEntrySelected>>", self.update_checkout_date)
-        
-#         # 確認ボタン
-#         self.reserve_button = tk.Button(self, text="確認", font=('', 12), relief=tk.RIDGE, width=20, bg="skyblue", activebackground="floralwhite")
-#         self.reserve_button.place(x=370, y=650, height=60)  # yを650から670に変更
-            
-#     def show_manual(self):
-#         """接客マニュアルウィンドウを表示"""
-#         manual_window = tk.Toplevel(self)
-#         manual_window.title("接客マニュアル")
-#         manual_window.geometry("700x500")
-#         # マニュアル内容
-#         manual_text = """接客マニュアル:
-# 1. 宴会をするかどうかきく
-# 2. 各自項目に対する要望をきく
-# 3. アレルギーなどの必要な情報をメモにまとめておく
-# """
-#         manual_label = tk.Label(manual_window, text=manual_text, font=("", 14), justify="left")
-#         manual_label.pack(padx=20, pady=20)
-        
-#     def go_main(self):    
-#         from main import HotelBookingApp
-#         self.destroy() 
-#         HotelBookingApp(self.master)
-        
-#     def act_check(self):
-#         room_type = self.room_type_combobox.get()
-#         checkin_date = self.checkin_entry.get_date()
-#         checkout_date = self.checkout_entry.get_date()
-#         # result = check_party(room_type,checkin_date,checkout_date)
-#         if result == "OK":
-#             self.go_confirm
-#         else:
-#             self.go_room_list  
-               
-#     def go_confirm(self):
-#         name = self.name_entry.get()
-#         email = self.email_entry.get()
-#         people = self.people_entry.get()
-#         room_type = self.room_type_combobox.get()
-#         checkin_date = self.checkin_entry.get_date()
-#         checkout_date = self.checkout_entry.get_date()
-#         memo = self.text_widget.get("1.0", tk.END).strip()
+        # 宴会コースの料金を取得
+        for course in self.party_data:
+            if course["宴会名"] == selected_course:
+                price_per_person = course["一人あたりの料金"]
+                break
 
-#         # 確認画面に遷移
-#         from main_confirm import Confirm
-#         self.destroy()
-#         Confirm(self.master, name, email, people, room_type, checkin_date, checkout_date, memo)
-      
-#     def update_checkout_date(self, event):
-#         """チェックイン日を基にチェックアウト日を更新"""
-#         checkin_date = self.checkin_entry.get_date()
-#         checkout_date = checkin_date + timedelta(days=1)  # 翌日を計算
-#         self.checkout_label.config(text=checkout_date.strftime('%Y-%m-%d'))
+        # 合計料金を計算
+        total_price = people * price_per_person
 
+        # 見積ラベルを更新
+        self.estimate_label.config(text=f"見積　 ¥{total_price:,}")
+
+    def update_stay_period(self, event):
+        """宴会日を基に宿泊期間を更新"""
+        party_date = self.party_date_entry.get_date()
+        checkout_date = party_date + timedelta(days=1)
+        self.stay_period_label.config(text=f"宿泊期間: {party_date.strftime('%Y-%m-%d')} ～ {checkout_date.strftime('%Y-%m-%d')}")
+
+
+    def show_manual(self):
+        """接客マニュアルウィンドウを表示"""
+        manual_window = tk.Toplevel(self)
+        manual_window.title("接客マニュアル")
+        manual_window.geometry("700x500")
+        manual_text = """接客マニュアル:
+1. 宴会をするかどうかきく
+2. 各自項目に対する要望をきく
+3. アレルギーなどの必要な情報をメモにまとめておく
+"""
+        manual_label = tk.Label(manual_window, text=manual_text, font=("", 14), justify="left")
+        manual_label.pack(padx=20, pady=20)
+
+    def go_party(self):
+        self.destroy()
+        HotelBookingApp_party(self.master)
+
+    def show_manual(self):
+        """接客マニュアルウィンドウを表示"""
+        manual_window = tk.Toplevel(self)
+        manual_window.title("接客マニュアル")
+        manual_window.geometry("700x500")
+        manual_text = """接客マニュアル:
+1. 宴会をするかどうかきく
+2. 各自項目に対する要望をきく
+3. アレルギーなどの必要な情報をメモにまとめておく
+"""
+        manual_label = tk.Label(manual_window, text=manual_text, font=("", 14), justify="left")
+        manual_label.pack(padx=20, pady=20)
+
+    def go_main(self):
+        self.destroy()
+        from main import HotelBookingApp
+        HotelBookingApp(self.master)
+
+    def act_check(self):
+        """予約情報を確認し、重複がなければ確認画面に遷移"""
+        name = self.name_entry.get()
+        email = self.email_entry.get()
+        people = self.people_entry.get()
+        rooms = self.room_entry.get()
+        party_course = self.party_course_combobox.get()
+        party_date = self.party_date_entry.get_date().strftime('%Y-%m-%d')
+        memo = self.text_widget.get("1.0", tk.END).strip()
+
+        if not name or not email or not people or not rooms or not party_course:
+            messagebox.showerror("エラー", "すべての必須項目を入力してください。")
+            return
+
+        try:
+            people = int(people)
+            rooms = int(rooms)
+            if people <= 0 or rooms <= 0:
+                raise ValueError
+        except ValueError:
+            messagebox.showerror("エラー", "人数と部屋数は正の整数で入力してください。")
+            return
+
+        # 部屋の割り当て
+        selected_rooms = [room for course in self.party_data if course["宴会名"] == party_course for room in course["対応部屋"]]
+        assigned_rooms = selected_rooms[:rooms]  # 入力された部屋数に基づいて割り当て
+
+        if len(assigned_rooms) < rooms:
+            messagebox.showerror("エラー", "選択した宴会コースに対応する部屋が不足しています。")
+            return
+
+        # 確認画面に遷移
+        from party_confirm import Application
+        self.destroy()
+        Application(self.master, name, email, people, assigned_rooms, party_course, party_date, memo)
 
 if __name__ == "__main__":
     root = tk.Tk()
