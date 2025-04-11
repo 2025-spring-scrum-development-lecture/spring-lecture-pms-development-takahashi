@@ -29,15 +29,24 @@ class HotelBookingApp(tk.Frame):
         """JSONファイルから部屋データを読み込む"""
         base_dir = os.path.dirname(__file__)  # 現在のスクリプトのディレクトリを取得
         file_path = os.path.join(base_dir, "../json/room.json")  # room.json のパスを指定
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                return json.load(file)
+        except FileNotFoundError:
+            messagebox.showerror("エラー", "room.json ファイルが見つかりません。")
+            return []
 
     def load_plan_data(self):
         """JSONファイルからプランデータを取得"""
         base_dir = os.path.dirname(__file__)  # 現在のスクリプトのディレクトリを取得
         file_path = os.path.join(base_dir, "../json/plan.json")  # plan.json のパスを指定
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                data = json.load(file)
+                return data
+        except FileNotFoundError:
+            messagebox.showerror("エラー", "plan.json ファイルが見つかりません。")
+            return []
 
     def create_widgets(self):
         frame1 = tk.Frame(self, relief="solid", bd=0.5)
@@ -81,19 +90,19 @@ class HotelBookingApp(tk.Frame):
         self.people_label.place(x=460, y=273)
 
         # 宿泊プラン
-        self.party_course_label = tk.Label(self, text="宿泊プラン", font=("", 20))
-        self.party_course_label.place(x=163, y=335)
-        self.party_course_combobox = ttk.Combobox(self, width=30, font=("", 13), state="readonly")
-        self.party_course_combobox['values'] = self.plan_names  # プラン名を設定
-        self.party_course_combobox.place(x=380, y=340, height=40)
-        self.party_course_combobox.bind("<<ComboboxSelected>>", self.update_room_types)  # プラン選択時に部屋を更新
-        self.party_course_combobox.bind("<<ComboboxSelected>>", self.update_total_price)  # プラン選択時に料金を更新
+        self.plan_label = tk.Label(self, text="宿泊プラン", font=("", 20))
+        self.plan_label.place(x=163, y=335)
+        self.plan_combobox = ttk.Combobox(self, width=30, font=("", 13), state="readonly")
+        self.plan_combobox['values'] = self.plan_names  # プラン名を設定
+        self.plan_combobox.place(x=380, y=340, height=40)
+        self.plan_combobox.bind("<<ComboboxSelected>>", self.update_total_price)  # プラン選択時に料金を更新
 
         # 部屋の種類
-        self.room_type_label = tk.Label(self, text="部屋の種類", font=("", 20))
-        self.room_type_label.place(x=155, y=410)
+        tk.Label(self, text="部屋の種類", font=("", 20)).place(x=155, y=410)
         self.room_type_combobox = ttk.Combobox(self, width=30, font=("", 13), state="readonly")
+        self.room_type_combobox['values'] = ["岩手山側露天風呂付き和室", "樽内風呂付き和洋室", "岩手山側和室", "本館和室", "西館和室", "西館洋室", "西館和洋室"]
         self.room_type_combobox.place(x=380, y=415, height=40)
+
 
         # 宿泊期間
         self.checkin_label = tk.Label(self, text="宿泊期間", font=("", 20))
@@ -116,15 +125,18 @@ class HotelBookingApp(tk.Frame):
 
         # 人数またはプラン変更時に見積を更新
         self.people_entry.bind("<KeyRelease>", self.update_total_price)
+        
+    # def update_room_types(self, event):
+    #     """選択されたプランに基づいて部屋の種類を更新"""
+    #     selected_plan = self.plan_combobox.get()
+    #     room_types = []
 
-    def update_room_types(self, event):
-        """選択されたプランに応じて部屋の種類を更新"""
-        selected_plan = self.party_course_combobox.get().strip()
-        for plan in self.plan_data:
-            if plan["プラン名"].strip() == selected_plan:
-                self.room_type_combobox['values'] = plan["対応部屋"]
-                return
-        self.room_type_combobox['values'] = []  # プランが選択されていない場合は空にする
+    #     # プランデータから対応部屋を取得
+    #     for plan in self.plan_data:
+    #         room_types = plan.get("対応部屋", [])
+
+    #     self.room_type_combobox['values'] = room_types
+        
 
     def update_total_price(self, event=None):
         """人数とプランに基づいて見積金額を計算"""
@@ -135,7 +147,7 @@ class HotelBookingApp(tk.Frame):
             people = 0  # 無効な値の場合は0に設定
 
         # 選択されたプランを取得
-        selected_plan = self.party_course_combobox.get()
+        selected_plan = self.plan_combobox.get()
         price_per_person = 0
 
         # プランデータから料金を取得
@@ -176,16 +188,27 @@ class HotelBookingApp(tk.Frame):
         email = self.email_entry.get()
         people = self.people_entry.get()
         memo = self.text_widget.get("1.0", tk.END).strip()
+        price = self.nice_guy_sawafuji.cget("text").replace("見積　 ¥", "").replace(",", "")
 
         if not room_type or not checkin_date or not checkout_date or not name or not email or not people:
             messagebox.showerror("エラー", "すべての項目を入力してください。")
             return
 
+        # 価格を数値に変換
+        try:
+            price = int(price)
+        except ValueError:
+            messagebox.showerror("エラー", "見積金額が無効です。")
+            return
+
         # 予約情報の重複チェック
         base_dir = os.path.dirname(__file__)
         file_path = os.path.join(base_dir, "../json/reservations.json")
-        with open(file_path, "r", encoding="utf-8") as file:
-            reservations = json.load(file)
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                reservations = json.load(file)
+        except FileNotFoundError:
+            reservations = []
 
         for reservation in reservations:
             if reservation["部屋の種類"] == room_type and (
@@ -198,14 +221,13 @@ class HotelBookingApp(tk.Frame):
         # 確認画面に遷移
         from main_confirm import Confirm
         self.destroy()
-        Confirm(self.master, name, email, people, room_type, checkin_date, checkout_date, memo)
-
+        Confirm(self.master, name, email, people, room_type, checkin_date, checkout_date, memo, price)
+   
     def update_checkout_date(self, event):
         """チェックイン日を基にチェックアウト日を更新"""
         checkin_date = self.checkin_entry.get_date()
         checkout_date = checkin_date + timedelta(days=1)
         self.checkout_label.config(text=checkout_date.strftime('%Y-%m-%d'))
-
 
 if __name__ == "__main__":
     root = tk.Tk()
