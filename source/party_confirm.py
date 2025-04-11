@@ -32,7 +32,7 @@ def send_mail(to, subject, body):
     server.quit()
 
 class Application(tk.Frame):
-    def __init__(self, master, name, email, people, rooms, room_types, party_course, party_date, memo, total_price):
+    def __init__(self, master, name, email, people,rooms, assigned_rooms, party_course, party_date,checkin_date,checkout_date, memo, total_price):
         super().__init__(master, width=1500, height=750)
         self.pack()
         master.geometry('1500x750')
@@ -44,9 +44,11 @@ class Application(tk.Frame):
             "メールアドレス": email,
             "人数": people,
             "部屋数": rooms,
-            "部屋の種類": room_types,
+            "部屋の種類": assigned_rooms,
             "宴会コース": party_course,
             "宴会日": party_date,
+            "チェックイン日": checkin_date,
+            "チェックアウト日": checkout_date,
             "メモ": memo,
             "合計料金": total_price
         }
@@ -88,6 +90,7 @@ class Application(tk.Frame):
         tk.Label(plan_frame, text=f"部屋の種類: {', '.join(self.reservation_data['部屋の種類'])}", font=("", 14), wraplength=600).pack(anchor="w", padx=10, pady=5)
         tk.Label(plan_frame, text=f"宴会コース: {self.reservation_data['宴会コース']}", font=("", 14)).pack(anchor="w", padx=10, pady=5)
         tk.Label(plan_frame, text=f"宴会日: {self.reservation_data['宴会日']}", font=("", 14)).pack(anchor="w", padx=10, pady=5)
+        tk.Label(plan_frame, text=f"宿泊期間: {self.reservation_data['チェックイン日']} ～ {self.reservation_data['チェックアウト日']}", font=("", 14)).pack(anchor="w", padx=10, pady=5)
 
         # 料金フレーム
         price_frame = tk.Frame(self, relief="solid", bd=0.5)
@@ -148,5 +151,5 @@ class Application(tk.Frame):
 
 if __name__ == '__main__':
     root = tk.Tk()
-    app = Application(root, "田中 太郎", "tanaka@example.com", 5, 2, ["岩手山側露天風呂月和室", "樽内風呂付き和洋室"], "豪華コース", "2025-04-10", "メモ内容", 108000)
+    app = Application(root, "田中 太郎", "tanaka@example.com", 5, 2, ["岩手山側露天風呂月和室", "樽内風呂付き和洋室"], "豪華コース", "2025-04-10", "2025-04-10", "2025-04-11", "メモ内容", 108000)
     app.mainloop()

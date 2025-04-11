@@ -207,6 +207,8 @@ class HotelBookingApp_party(tk.Frame):
         party_course = self.party_course_combobox.get()
         party_date = self.party_date_entry.get_date().strftime('%Y-%m-%d')
         memo = self.text_widget.get("1.0", tk.END).strip()
+        checkin_date = self.checkin_entry.get_date().strftime('%Y-%m-%d')
+        checkout_date = self.checkout_label.cget("text")
 
         if not name or not email or not people or not rooms or not party_course:
             messagebox.showerror("エラー", "すべての必須項目を入力してください。")
@@ -229,10 +231,14 @@ class HotelBookingApp_party(tk.Frame):
             messagebox.showerror("エラー", "選択した宴会コースに対応する部屋が不足しています。")
             return
 
+        # 合計料金を計算
+        price_per_person = next((course["一人あたりの料金"] for course in self.party_data if course["宴会名"] == party_course), 0)
+        total_price = people * price_per_person
+
         # 確認画面に遷移
         from party_confirm import Application
         self.destroy()
-        Application(self.master, name, email, people, assigned_rooms, party_course, party_date, memo)
+        Application(self.master, name, email, people, rooms,assigned_rooms, party_course, party_date,checkin_date,checkout_date, memo, total_price)
 
 if __name__ == "__main__":
     root = tk.Tk()
