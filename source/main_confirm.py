@@ -40,7 +40,7 @@ def send_mail(to, subject, body):
     server.quit()
 
 class Confirm(tk.Frame):
-    def __init__(self, master, name, email, people, room_type, checkin_date, checkout_date, memo, total_price):
+    def __init__(self, master, name, email, people, room_type, checkin_date, checkout_date, memo, price):
         super().__init__(master, width=1500, height=750)
         self.pack()
         master.geometry('1500x750')  
@@ -56,7 +56,7 @@ class Confirm(tk.Frame):
             "チェックアウト日": checkout_date,
             "メモ": memo
         }
-        self.total_price = total_price  # 合計料金
+        self.total_price = price  # 合計料金
 
         # 情報を表示するウィジェットを作成
         self.create_widgets(name, email, people, room_type, checkin_date, checkout_date, memo)
