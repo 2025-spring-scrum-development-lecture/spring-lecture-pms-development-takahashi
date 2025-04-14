@@ -20,6 +20,7 @@ try:
 except:
     pass
 
+
 def send_mail(to, subject, body):
     """メールを送信"""
     ID = 'k.takahashi.sys24@morijyobi.ac.jp'
@@ -61,6 +62,9 @@ class Confirm(tk.Frame):
         # 情報を表示するウィジェットを作成
         self.create_widgets(name, email, people, room_type, checkin_date, checkout_date, memo)
 
+    
+
+    
     def create_widgets(self, name, email, people, room_type, checkin_date, checkout_date, memo):
         self.title_label = tk.Label(self, text="お客様情報確認", font=("", 30))
         self.title_label.place(x=20, y=15)
@@ -107,25 +111,43 @@ class Confirm(tk.Frame):
         tk.Label(memo_frame, text="メモ", font=("", 16)).pack(anchor="w", padx=10, pady=5)
         tk.Label(memo_frame, text=memo, font=("", 14), wraplength=600, justify="left").pack(anchor="w", padx=10, pady=5)
 
+    # def get_reservation_file_path():
+    #     """reservation.json の保存先を取得"""
+    #     # ユーザーのドキュメントフォルダに保存
+    #     base_dir = os.path.expanduser("~/Documents/spring-lecture-pms")
+    #     if not os.path.exists(base_dir):
+    #         os.makedirs(base_dir)
+    #         print(f"保存先フォルダを作成しました: {base_dir}")
+    #     return os.path.join(base_dir, "reservations.json")
+
     def save_reservation(self):
         """予約情報を保存"""
         base_dir = os.path.dirname(__file__)
-        file_path = os.path.join(base_dir, "../json/reservations.json")
+        json_dir = os.path.join(base_dir, "json")
+        file_path = os.path.join(json_dir, "reservations.json")
 
-        # 既存の予約情報を読み込む
+        # json フォルダが存在しない場合は作成
+        if not os.path.exists(json_dir):
+            os.makedirs(json_dir)
+            print(f"json フォルダを作成しました: {json_dir}")
+            
         try:
+            # 既存のデータを読み込む
             with open(file_path, "r", encoding="utf-8") as file:
                 reservations = json.load(file)
         except FileNotFoundError:
+            # ファイルが存在しない場合は新しいリストを作成
             reservations = []
 
         # 新しい予約情報を追加
-        reservations.append(self.reservation_data)
+        data = self.reservation_data
+        reservations.append(data)
 
-        # ファイルに書き込む
+        # ファイルに書き込み
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(reservations, file, ensure_ascii=False, indent=4)
-
+        print(f"予約データを保存しました: {file_path}")
+        
         # メール送信
         subject = "【予約確定のお知らせ】宿泊予約内容のご確認"
         body = f"""
@@ -152,6 +174,8 @@ class Confirm(tk.Frame):
         )
         if result:  # OKが押された場合
             self.go_main()
+    
+
 
     def go_main(self):
         """メイン画面に遷移"""
@@ -259,22 +283,31 @@ class Confirm(tk.Frame):
     def save_reservation(self):
         """予約情報を保存"""
         base_dir = os.path.dirname(__file__)
-        file_path = os.path.join(base_dir, "../json/reservations.json")
+        json_dir = os.path.join(base_dir, "json")
+        file_path = os.path.join(json_dir, "reservations.json")
 
-        # 既存の予約情報を読み込む
+        # json フォルダが存在しない場合は作成
+        if not os.path.exists(json_dir):
+            os.makedirs(json_dir)
+            print(f"json フォルダを作成しました: {json_dir}")
+
         try:
+            # 既存のデータを読み込む
             with open(file_path, "r", encoding="utf-8") as file:
                 reservations = json.load(file)
         except FileNotFoundError:
+            # ファイルが存在しない場合は新しいリストを作成
             reservations = []
 
         # 新しい予約情報を追加
-        reservations.append(self.reservation_data)
+        data = self.reservation_data
+        reservations.append(data)
 
-        # ファイルに書き込む
+        # ファイルに書き込み
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(reservations, file, ensure_ascii=False, indent=4)
-
+        print(f"予約データを保存しました: {file_path}")
+        
         # メール送信
         subject = "【予約確定のお知らせ】宿泊予約内容のご確認"
         body = f"""

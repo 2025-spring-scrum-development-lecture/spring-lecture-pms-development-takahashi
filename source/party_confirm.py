@@ -6,6 +6,9 @@ import ctypes
 from smtplib import SMTP
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from datetime import datetime, timedelta
+from tkcalendar import DateEntry
+import datetime
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(True)
@@ -103,26 +106,36 @@ class Application(tk.Frame):
         memo_frame.place(x=750, y=330, width=620, height=370)
         tk.Label(memo_frame, text="メモ", font=("", 16)).pack(anchor="w", padx=10, pady=5)
         tk.Label(memo_frame, text=self.reservation_data["メモ"], font=("", 14), wraplength=600, justify="left").pack(anchor="w", padx=10, pady=5)
+   
+    def get_party_reservation_file_path():
+        """party_reservations.json の保存先を取得"""
+        # ユーザーのドキュメントフォルダに保存
+        base_dir = os.path.expanduser("~/Documents/spring-lecture-pms")
+        if not os.path.exists(base_dir):
+            os.makedirs(base_dir)
+            print(f"保存先フォルダを作成しました: {base_dir}")
+        return os.path.join(base_dir, "party_reservations.json")
 
-    def save_reservation(self):
-        """予約情報を保存"""
-        base_dir = os.path.dirname(__file__)
-        file_path = os.path.join(base_dir, "../json/reservations.json")
-
-        # 既存の予約情報を読み込む
+    def save_party_reservation(self):
+        """宴会予約情報を保存"""
+        file_path = self.get_party_reservation_file_path()
         try:
+            # 既存のデータを読み込む
             with open(file_path, "r", encoding="utf-8") as file:
                 reservations = json.load(file)
         except FileNotFoundError:
+            # ファイルが存在しない場合は新しいリストを作成
             reservations = []
 
-        # 新しい予約情報を追加
-        reservations.append(self.reservation_data)
+        # 新しい宴会予約情報を追加
+        data = self.party_reservation_data
+        reservations.append(data)
 
-        # ファイルに書き込む
+        # ファイルに書き込み
         with open(file_path, "w", encoding="utf-8") as file:
             json.dump(reservations, file, ensure_ascii=False, indent=4)
-
+        print(f"宴会予約データを保存しました: {file_path}")
+        
         # メール送信
         subject = "【予約確定のお知らせ】宴会予約内容のご確認"
         body = f"""

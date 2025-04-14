@@ -5,6 +5,7 @@ import json
 import os
 from datetime import timedelta
 import tkinter.messagebox as messagebox
+import sys
 
 # 解像度をあげた
 import ctypes
@@ -22,28 +23,27 @@ class HotelBookingApp_party(tk.Frame):
         self.party_data = self.load_party_data()  # 宴会データをロード
         self.room_data = self.load_room_data()  # 部屋データをロード
         self.create_widgets()
-
-    def load_party_data(self):
-        """JSONファイルから宴会コースデータを読み込む"""
-        base_dir = os.path.dirname(__file__)
-        file_path = os.path.join(base_dir, "../json/party.json")
+        
+    def load_json_file(self, filename):
+        """JSONファイルを読み込む"""
+        base_dir = getattr(sys, '_MEIPASS', os.path.dirname(__file__))  # PyInstaller 用のパス対応
+        file_path = os.path.join(base_dir, "json", filename)  # json フォルダ内のファイルを指定
+        print(f"読み込むファイルのパス: {file_path}")  # デバッグ用ログ
         try:
             with open(file_path, "r", encoding="utf-8") as file:
                 return json.load(file)
         except FileNotFoundError:
-            messagebox.showerror("エラー", "party.json ファイルが見つかりません。")
+            print(f"{filename} が見つかりません")  # デバッグ用ログ
+            messagebox.showerror("エラー", f"{filename} ファイルが見つかりません。")
             return []
+
+    def load_party_data(self):
+        """JSONファイルから宴会データを読み込む"""
+        return self.load_json_file("party.json")
 
     def load_room_data(self):
         """JSONファイルから部屋データを読み込む"""
-        base_dir = os.path.dirname(__file__)
-        file_path = os.path.join(base_dir, "../json/room.json")
-        try:
-            with open(file_path, "r", encoding="utf-8") as file:
-                return json.load(file)
-        except FileNotFoundError:
-            messagebox.showerror("エラー", "room.json ファイルが見つかりません。")
-            return []
+        return self.load_json_file("room.json")
 
     def create_widgets(self):
         # メインフレーム

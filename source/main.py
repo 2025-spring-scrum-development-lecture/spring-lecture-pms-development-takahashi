@@ -6,6 +6,7 @@ import os
 from party import HotelBookingApp_party
 from datetime import timedelta
 from tkinter import messagebox
+import sys
 
 # 解像度をあげた
 import ctypes
@@ -25,29 +26,27 @@ class HotelBookingApp(tk.Frame):
         self.plan_names = [plan["プラン名"] for plan in self.plan_data]  # プラン名をリスト化
         self.create_widgets()
 
-    def load_room_data(self):
-        """JSONファイルから部屋データを読み込む"""
-        base_dir = os.path.dirname(__file__)  # 現在のスクリプトのディレクトリを取得
-        file_path = os.path.join(base_dir, "../json/room.json")  # room.json のパスを指定
+    def load_json_file(self, filename):
+        """JSONファイルを読み込む"""
+        base_dir = getattr(sys, '_MEIPASS', os.path.dirname(__file__))  # PyInstaller 用のパス対応
+        file_path = os.path.join(base_dir, "json", filename)  # json フォルダ内のファイルを指定
+        print(f"読み込むファイルのパス: {file_path}")  # デバッグ用ログ
         try:
             with open(file_path, "r", encoding="utf-8") as file:
                 return json.load(file)
         except FileNotFoundError:
-            messagebox.showerror("エラー", "room.json ファイルが見つかりません。")
+            print(f"{filename} が見つかりません")  # デバッグ用ログ
+            messagebox.showerror("エラー", f"{filename} ファイルが見つかりません。")
             return []
+
+    def load_room_data(self):
+        """JSONファイルから部屋データを読み込む"""
+        return self.load_json_file("room.json")
 
     def load_plan_data(self):
         """JSONファイルからプランデータを取得"""
-        base_dir = os.path.dirname(__file__)  # 現在のスクリプトのディレクトリを取得
-        file_path = os.path.join(base_dir, "../json/plan.json")  # plan.json のパスを指定
-        try:
-            with open(file_path, "r", encoding="utf-8") as file:
-                data = json.load(file)
-                return data
-        except FileNotFoundError:
-            messagebox.showerror("エラー", "plan.json ファイルが見つかりません。")
-            return []
-
+        return self.load_json_file("plan.json")
+        
     def create_widgets(self):
         frame1 = tk.Frame(self, relief="solid", bd=0.5)
         frame1.place(x=870, y=100, width=600, height=560)
