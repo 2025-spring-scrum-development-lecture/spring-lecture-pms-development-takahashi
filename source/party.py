@@ -158,10 +158,10 @@ class HotelBookingApp_party(tk.Frame):
 
     def update_stay_period(self, event):
         """宴会日を基に宿泊期間を更新"""
-        party_date = self.party_date_entry.get_date()
-        checkout_date = party_date + timedelta(days=1)
-        self.stay_period_label.config(text=f"宿泊期間: {party_date.strftime('%Y-%m-%d')} ～ {checkout_date.strftime('%Y-%m-%d')}")
-
+        self.party_date = self.party_date_entry.get_date()  # 宴会日を取得
+        self.checkout_date = self.party_date + timedelta(days=1)  # 翌日を計算
+        # 宿泊期間ラベルを更新
+        self.stay_period_label.config(text=f"宿泊期間　{self.party_date.strftime('%Y-%m-%d')} ～ {self.checkout_date.strftime('%Y-%m-%d')}")
 
     def show_manual(self):
         """接客マニュアルウィンドウを表示"""
@@ -207,8 +207,8 @@ class HotelBookingApp_party(tk.Frame):
         party_course = self.party_course_combobox.get()
         party_date = self.party_date_entry.get_date().strftime('%Y-%m-%d')
         memo = self.text_widget.get("1.0", tk.END).strip()
-        checkin_date = self.checkin_entry.get_date().strftime('%Y-%m-%d')
-        checkout_date = self.checkout_label.cget("text")
+        checkin_date = self.party_date_entry.get_date().strftime('%Y-%m-%d')
+        checkout_date = self.checkout_date
 
         if not name or not email or not people or not rooms or not party_course:
             messagebox.showerror("エラー", "すべての必須項目を入力してください。")
